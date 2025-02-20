@@ -37,6 +37,8 @@ reliable events delivery to Clickhouse. There is how it works:
 2. Celery background process reads the events from Outbox and sends
    them to Clickhouse.
 3. In case of error, background process tries to send evens again.
+  
+![diagram](./docs/diagram.svg)
 
 ## Design solutions
 The main goal is establishing ACID for Clickhouse insert
