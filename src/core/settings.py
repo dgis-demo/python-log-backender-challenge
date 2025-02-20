@@ -110,8 +110,15 @@ STATIC_ROOT = env("STATIC_ROOT")
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CELERY_BROKER = env("CELERY_BROKER", default="redis://localhost:6379/0")
+CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://redis:6379/0")
 CELERY_ALWAYS_EAGER = env("CELERY_ALWAYS_EAGER", default=DEBUG)
+CELERY_BEAT_SCHEDULE = {
+    "send_logs": {
+        "task": "users.tasks.send_outbox_events",
+        "schedule": env("SEND_OUTBOX_EVENTS_SECONDS", default=10),
+        "args": (env("SEND_OUTBOX_EVENTS_BATCH_SIZE", default=100), ),
+    },
+}
 
 LOG_FORMATTER = env("LOG_FORMATTER", default="console")
 LOG_LEVEL = env("LOG_LEVEL", default="INFO")

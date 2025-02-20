@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+
+      clickhouse:
+        image: clickhouse/clickhouse-server:23.8.2.7-alpine
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Python installation
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Dependencies installation
+        run: |
+          cp src/core/.env.ci src/core/.env
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Tests
+        run: make test

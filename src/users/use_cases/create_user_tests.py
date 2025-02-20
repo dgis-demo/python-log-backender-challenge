@@ -6,6 +6,8 @@ import pytest
 from clickhouse_connect.driver import Client
 from django.conf import settings
 
+from users.models import EventOutbox
+from users.tasks import send_outbox_events
 from users.use_cases import CreateUser, CreateUserRequest, UserCreated
 
 pytestmark = [pytest.mark.django_db]
@@ -28,9 +30,13 @@ def test_user_created(f_use_case: CreateUser) -> None:
     )
 
     response = f_use_case.execute(request)
+    events = EventOutbox.objects.all()
 
     assert response.result.email == 'test@email.com'
     assert response.error == ''
+    assert len(events) == 1
+    assert events[0].event_type == 'UserCreated'
+    assert response.result.email in events[0].event_context
 
 
 def test_emails_are_unique(f_use_case: CreateUser) -> None:
@@ -55,6 +61,7 @@ def test_event_log_entry_published(
     )
 
     f_use_case.execute(request)
+    send_outbox_events(10)
     log = f_ch_client.query("SELECT * FROM default.event_log WHERE event_type = 'user_created'")
 
     assert log.result_rows == [

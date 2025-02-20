@@ -7,9 +7,7 @@ import clickhouse_connect
 import structlog
 from clickhouse_connect.driver.exceptions import DatabaseError
 from django.conf import settings
-from django.utils import timezone
-
-from core.base_model import Model
+from django.db.models import Model
 
 logger = structlog.get_logger(__name__)
 
@@ -70,10 +68,10 @@ class EventLogClient:
     def _convert_data(self, data: list[Model]) -> list[tuple[Any]]:
         return [
             (
-                self._to_snake_case(event.__class__.__name__),
-                timezone.now(),
+                self._to_snake_case(event.event_type),
+                event.event_date_time,
                 settings.ENVIRONMENT,
-                event.model_dump_json(),
+                event.event_context,
             )
             for event in data
         ]
