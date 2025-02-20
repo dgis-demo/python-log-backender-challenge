@@ -4,9 +4,8 @@ import structlog
 from django.utils import timezone
 
 from core.base_model import Model
-from core.event_log_client import EventLogClient
 from core.use_case import UseCase, UseCaseRequest, UseCaseResponse
-from users.models import User, EventOutbox
+from users.models import EventOutbox, User
 
 logger = structlog.get_logger(__name__)
 
@@ -65,15 +64,3 @@ class CreateUser(UseCase):
             event_date_time=timezone.now(),
             event_context=event.model_dump_json(),
         )
-
-        with EventLogClient.init() as client:
-            client.insert(
-                data=[
-                    UserCreated(
-                        email=user.email,
-                        first_name=user.first_name,
-                        last_name=user.last_name,
-                    ),
-                ],
-            )
-
